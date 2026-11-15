@@ -1,0 +1,29 @@
+{
+  "time": "2026-11-16T05:18:25+08:00",
+  "uid": 11580,
+  "run_id": "uf-20261116-new20-artifact-rule-coverage-proof",
+  "actual": {
+    "python": "3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\runtime-tasks\\in-toto\\env\\Scripts\\python.exe",
+    "modules": {
+      "in_toto.verifylib": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\replay-source\\in_toto\\verifylib.py",
+      "in_toto.coverage": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\replay-source\\in_toto\\coverage.py"
+    }
+  },
+  "replay_source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\replay-source",
+  "frozen_hashes_unchanged": true,
+  "replay_source_hashes_unchanged": true,
+  "dependency_environment": "Reused the task dependency environment; exact pip freeze retained",
+  "commands": [
+    {
+      "name": "focused-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "independent-contract",
+      "exit_code": 0
+    }
+  ],
+  "score": null,
+  "semantic_review": "PENDING"
+}

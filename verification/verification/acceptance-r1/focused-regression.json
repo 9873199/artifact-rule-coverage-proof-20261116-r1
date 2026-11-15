@@ -1,0 +1,25 @@
+{
+  "time": "2026-11-16T05:18:19+08:00",
+  "argv": [
+    "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\runtime-tasks\\in-toto\\env\\Scripts\\python.exe",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_strict_coverage.py",
+    "tests/test_rulelib.py",
+    "tests/test_verifylib.py::TestVerifyRule",
+    "tests/test_verifylib.py::TestVerifyMatchRule",
+    "tests/test_verifylib.py::TestVerifyItemRules",
+    "tests/test_verifylib.py::TestVerifyAllItemRules",
+    "tests/test_verifylib.py::TestInTotoVerifyThresholds",
+    "-o",
+    "addopts=",
+    "--basetemp",
+    "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1/tmp-regression"
+  ],
+  "cwd": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\replay-source",
+  "exit_code": 0,
+  "stdout_log": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\focused-regression.stdout.log",
+  "stderr_log": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\focused-regression.stderr.log"
+}

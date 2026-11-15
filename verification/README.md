@@ -1,0 +1,4 @@
+冻结产物独立回放，实际import与依赖锁记录；模型源码和原轨不改。相关回归40项通过（含模型新写8项完整签名与嵌套layout测试），独立契约12项及额外阈值2项通过。独立Ed25519临时签名layout与两step，inspection仅用注入runner，不执行layout里的命令。核prefix、双hash、未消费、原规则索引、记录不可变、CREATE/DELETE/MODIFY两侧、原API返回、坏签名候选和threshold2冲突。原轨最后组合测试69过7失败，失败属于GPG门槛组；广套基线17失败6collection错误、232通过，另有CLI基类收集与Windows符号链接问题，未作本题扣分，未声称全套通过。ruff未安装，不声称lint通过。demo.py为独立评审辅助，现场生成签名并调用冻结产品，展示严格成功与真实拒绝；GUI自动逐键输入明确标注，非人工操作。
+
+冻结产物提交：https://github.com/9873199/artifact-rule-coverage-proof-20261116-r1/commit/12d10c7809c8b96276eec02d3db69c1d5a42fefb
+这些独立验收文件在模型首轮结束后生成，不是模型原轨中的测试。

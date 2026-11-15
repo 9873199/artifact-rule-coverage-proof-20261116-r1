@@ -1,0 +1,54 @@
+{
+  "requirements": [
+    {
+      "requirement": "immutable per-artifact rules, prefixes, destination/digest provenance",
+      "source": "coverage.py ArtifactConsumption/RuleTraceEntry; verifylib._build_consumption_record",
+      "evidence": "independent signed_prefix_match; rule index duplicates; actual demo stage/tool -> compile:build/tool",
+      "result": "CONFIRMED"
+    },
+    {
+      "requirement": "strict rejects uncovered/mismatch, no partial report/no implicit wildcard",
+      "source": "verify_item_rules_coverage then in_toto_verify_coverage.build_report only after full success",
+      "evidence": "independent unconsumed/multi-digest/missing-signature rejection; original queue semantics regressions",
+      "result": "CONFIRMED"
+    },
+    {
+      "requirement": "trusted threshold/sublayout link only",
+      "source": "_verify_supply_chain after signature thresholds, verify_sublayouts, threshold constraints/reduce",
+      "evidence": "extra2 signed candidate exclusion and threshold2 disagreement; native nested test rerun",
+      "result": "CONFIRMED"
+    },
+    {
+      "requirement": "CREATE/DELETE/MODIFY two-sided facts and original flow compatibility",
+      "source": "record material_hashes/product_hashes/in_materials/in_products; old in_toto_verify unchanged result",
+      "evidence": "independent four param cases and legacy Link result; native8 offline example",
+      "result": "CONFIRMED"
+    },
+    {
+      "requirement": "rejected layout never executes runner",
+      "source": "step rules before run_all_inspections",
+      "evidence": "independent uncovered and invalid-layout callback counts0; native rejected layout test",
+      "result": "CONFIRMED"
+    }
+  ],
+  "process_evidence": {
+    "implementation": "observable actions new coverage.py and verifylib edits",
+    "last_native_tests_action": 231,
+    "last_native_tests_result": 232,
+    "baseline_comparison_action": 226,
+    "baseline_comparison_result": 227,
+    "missing_ruff_result": 189
+  },
+  "not_deducted": [
+    "GPG absence",
+    "CLI base class collection errors",
+    "Windows symlink permission",
+    "ruff absent and no lint pass claimed"
+  ],
+  "independent_checks_are_not_native_model_tests": true,
+  "time": "2026-11-16T05:26:06+08:00",
+  "uid": 11580,
+  "frozen_commit": "12d10c7809c8b96276eec02d3db69c1d5a42fefb",
+  "native_trace_sha256": "0251e1ac0b0e69550904dedb18b81395a994b9ee1513afb4f8fcdff28fd32e51",
+  "no_model_source_changes_after_freeze": true
+}

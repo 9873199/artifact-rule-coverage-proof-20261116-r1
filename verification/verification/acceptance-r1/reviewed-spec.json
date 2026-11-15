@@ -1,0 +1,64 @@
+{
+  "uid": 11580,
+  "run_id": "uf-20261116-new20-artifact-rule-coverage-proof",
+  "reviewed": true,
+  "reviewer": "Codex primary agent",
+  "revision": "acceptance-r1",
+  "frozen_trace_sha256": "0251e1ac0b0e69550904dedb18b81395a994b9ee1513afb4f8fcdff28fd32e51",
+  "product_modules": [
+    "in_toto.verifylib",
+    "in_toto.coverage"
+  ],
+  "support_files": [
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\review-design\\11580\\test_contract.py",
+      "path": "test_contract.py",
+      "sha256": "1cb323e838a7c5d65ee651e3b8ea9c4690486270e650a3dc636aab6d2530450d"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\review-design\\11580\\signed_fixtures.py",
+      "path": "signed_fixtures.py",
+      "sha256": "9f2a2aea6f3c75661a85aeb930404ac844563cfe703a5c764074780777d5f58c"
+    }
+  ],
+  "commands": [
+    {
+      "name": "focused-regression",
+      "argv": [
+        "{python}",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_strict_coverage.py",
+        "tests/test_rulelib.py",
+        "tests/test_verifylib.py::TestVerifyRule",
+        "tests/test_verifylib.py::TestVerifyMatchRule",
+        "tests/test_verifylib.py::TestVerifyItemRules",
+        "tests/test_verifylib.py::TestVerifyAllItemRules",
+        "tests/test_verifylib.py::TestInTotoVerifyThresholds",
+        "-o",
+        "addopts=",
+        "--basetemp",
+        "{verification}/tmp-regression"
+      ],
+      "timeout": 180
+    },
+    {
+      "name": "independent-contract",
+      "argv": [
+        "{python}",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "{verification}/test_contract.py",
+        "-o",
+        "addopts=",
+        "--basetemp",
+        "{verification}/tmp-independent"
+      ],
+      "timeout": 120
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "created": "2026-11-16T05:26:06+08:00",
+  "reviewed": true,
+  "reviewer": "Codex primary agent, AI-assisted",
+  "uid": 11580,
+  "frozen_commit": "12d10c7809c8b96276eec02d3db69c1d5a42fefb",
+  "native_trajectory_sha256": "0251e1ac0b0e69550904dedb18b81395a994b9ee1513afb4f8fcdff28fd32e51",
+  "files": [
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\freeze.json",
+      "path": "freeze.json",
+      "sha256": "33fe5979c10f671440ebd2e0311eaf64474c3ad7b84a73f5e4d7ce24c7b44bc9"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\freeze-audit.json",
+      "path": "freeze-audit.json",
+      "sha256": "bfefeb70e897bffda0b3706af9c49d60c38b98848c48213d4169210d1a59a246"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\environment-reviewed.json",
+      "path": "environment-reviewed.json",
+      "sha256": "228732687535b2a97425e4f0ecce47481919bbe071c45fc55cfef0105a77bbdd"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\evidence-map.json",
+      "path": "evidence-map.json",
+      "sha256": "0b3e0e562adc686300b82f447e585c799c755a99c4c22d85903d807a289dc684"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\model-final-answer.txt",
+      "path": "model-final-answer.txt",
+      "sha256": "32e8d8c7c7bd2a8cd81aee280ec660295fd5e5728c34224e843b180daea3be18"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\test-results.json",
+      "path": "test-results.json",
+      "sha256": "9dc611e73ecaa4e4201fff8cf0645e5eb0bb9de5f61d01fb3c3a8346194aed98"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\evaluation-qc.json",
+      "path": "evaluation-qc.json",
+      "sha256": "ba0386d0d88d4ac0a5f01193e26fd485797e7c707c034e0d4516a236edbe1e1a"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\actual-import.json",
+      "path": "verification/acceptance-r1/actual-import.json",
+      "sha256": "90528a2d87e6a6bf1f25c25bae0fdeb65d290b0b962088e936f3f45571c6ad88"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\actual-import.stderr.log",
+      "path": "verification/acceptance-r1/actual-import.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\actual-import.stdout.log",
+      "path": "verification/acceptance-r1/actual-import.stdout.log",
+      "sha256": "d8e18845fd32c69fbd0eed43a194cdd5f9b32fc69df47afa12e5fbf8beecd6d6"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\demo-preflight.json",
+      "path": "verification/acceptance-r1/demo-preflight.json",
+      "sha256": "60ee45857dd8dd600e6663379c73bc2317a08f67dab6a765fd7e378cef3281db"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\demo-preflight.stderr.log",
+      "path": "verification/acceptance-r1/demo-preflight.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\demo-preflight.stdout.log",
+      "path": "verification/acceptance-r1/demo-preflight.stdout.log",
+      "sha256": "ddd53d2938f25932d273a51db2404660cb327564125ae8e4393ff78f852ca1e0"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\demo.py",
+      "path": "verification/acceptance-r1/demo.py",
+      "sha256": "2d803979d77c00b6ee29f6d6ce29c5f98ed213df06c113e6d0f5539e25223921"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\dependency-lock.json",
+      "path": "verification/acceptance-r1/dependency-lock.json",
+      "sha256": "4e6a00e68f58390d6d838c5c88e65e8d173c483cb4411e02937f694e91f33674"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\dependency-lock.stderr.log",
+      "path": "verification/acceptance-r1/dependency-lock.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\dependency-lock.stdout.log",
+      "path": "verification/acceptance-r1/dependency-lock.stdout.log",
+      "sha256": "436d0edff11e3c72f2d4c59fbffc46f2ee59a45b3db18e57bca75b7fa569c7c4"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\focused-regression.json",
+      "path": "verification/acceptance-r1/focused-regression.json",
+      "sha256": "b5b1f4af9a9b1b4f5882907d738f38d2352c3fe300338a888829b6b3946d8e16"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\focused-regression.stderr.log",
+      "path": "verification/acceptance-r1/focused-regression.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\focused-regression.stdout.log",
+      "path": "verification/acceptance-r1/focused-regression.stdout.log",
+      "sha256": "78b4ab0d18e85ba8e104162520063b96f194c192398c6db6185ca64d0b45adf5"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\independent-contract.json",
+      "path": "verification/acceptance-r1/independent-contract.json",
+      "sha256": "1c206a19f6e187f597ce2cedc79a492810578ee5d4696ad44a4e07f1dfe872b3"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\independent-contract.stderr.log",
+      "path": "verification/acceptance-r1/independent-contract.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\independent-contract.stdout.log",
+      "path": "verification/acceptance-r1/independent-contract.stdout.log",
+      "sha256": "58eac9d89c01c0570fa376745a0d58c1617e8b066a98aecd313342d8bd2e365f"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\replay-proof.json",
+      "path": "verification/acceptance-r1/replay-proof.json",
+      "sha256": "e7467a957c292ee12d8dc6eeec3e1e443b41a3bd4b3f3fdc64bc6ccdb3fc2b1d"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\reproduction-notes.md",
+      "path": "verification/acceptance-r1/reproduction-notes.md",
+      "sha256": "5e356cbb0ec67909b9e33d914dbf8db65d30f85972e179630a333a399a38ae1d"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\reviewed-spec.json",
+      "path": "verification/acceptance-r1/reviewed-spec.json",
+      "sha256": "3ef355a3fa8bc56afde778805574e7043539d1e5a27b567d896ec4705822b6a3"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\signed_fixtures.py",
+      "path": "verification/acceptance-r1/signed_fixtures.py",
+      "sha256": "9f2a2aea6f3c75661a85aeb930404ac844563cfe703a5c764074780777d5f58c"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\test_contract.py",
+      "path": "verification/acceptance-r1/test_contract.py",
+      "sha256": "1cb323e838a7c5d65ee651e3b8ea9c4690486270e650a3dc636aab6d2530450d"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\test_threshold_extra.py",
+      "path": "verification/acceptance-r1/test_threshold_extra.py",
+      "sha256": "5888840219ef544391ad1ee7f940e441dcb1ca4fb1305077c4b7d2983595a1da"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\threshold-extra.json",
+      "path": "verification/acceptance-r1/threshold-extra.json",
+      "sha256": "58b2db4c539469fd5913de533690fd10b5a0039ec4b1d2f08f16b342d055a51c"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\threshold-extra.stderr.log",
+      "path": "verification/acceptance-r1/threshold-extra.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\acceptance-r1\\threshold-extra.stdout.log",
+      "path": "verification/acceptance-r1/threshold-extra.stdout.log",
+      "sha256": "8e6d29dbafe0b07608f4d49dd9f293e692c8e3385c6c89f22f3c4426a634f14f"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\actual-commands.json",
+      "path": "verification/recorded-runtime-r1/actual-commands.json",
+      "sha256": "4e8874b9944c3169a51f88846fba8dc11540a807f26cdf945780ddd736cf82f5"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\actual-keystrokes.json",
+      "path": "verification/recorded-runtime-r1/actual-keystrokes.json",
+      "sha256": "ba2b73999763be3522562d83bb0bd9afda9e81366da79ad5e03d75d295a54cca"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\live-coverage-output.log",
+      "path": "verification/recorded-runtime-r1/live-coverage-output.log",
+      "sha256": "ddd53d2938f25932d273a51db2404660cb327564125ae8e4393ff78f852ca1e0"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\recording-status.json",
+      "path": "verification/recorded-runtime-r1/recording-status.json",
+      "sha256": "c1112bde9c662421ff6b32619de0f402708626a67534042d3877fdbd61590be7"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\spec.json",
+      "path": "verification/recorded-runtime-r1/spec.json",
+      "sha256": "030927f412c66cd59f83f18d79accb9960e2a8b4be469bbb6ec1711eb040a3e7"
+    },
+    {
+      "source": "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\evaluation\\uf-20261116-new20-artifact-rule-coverage-proof\\verification\\recorded-runtime-r1\\typing-check.json",
+      "path": "verification/recorded-runtime-r1/typing-check.json",
+      "sha256": "f8cc8f9d4a340cc1e1c266b295ce6b03e7bcabd480246830b9279a9c0fc25cb7"
+    }
+  ],
+  "reproduction_readme": "冻结产物独立回放，实际import与依赖锁记录；模型源码和原轨不改。相关回归40项通过（含模型新写8项完整签名与嵌套layout测试），独立契约12项及额外阈值2项通过。独立Ed25519临时签名layout与两step，inspection仅用注入runner，不执行layout里的命令。核prefix、双hash、未消费、原规则索引、记录不可变、CREATE/DELETE/MODIFY两侧、原API返回、坏签名候选和threshold2冲突。原轨最后组合测试69过7失败，失败属于GPG门槛组；广套基线17失败6collection错误、232通过，另有CLI基类收集与Windows符号链接问题，未作本题扣分，未声称全套通过。ruff未安装，不声称lint通过。demo.py为独立评审辅助，现场生成签名并调用冻结产品，展示严格成功与真实拒绝；GUI自动逐键输入明确标注，非人工操作。",
+  "no_model_source_edits": true,
+  "native_trace_included": false
+}

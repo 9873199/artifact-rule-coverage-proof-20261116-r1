@@ -1,0 +1,8 @@
+Real Ed25519 signatures; offline inspection runner
+Strict coverage: True records= 5 runner= ['audit']
+MATCH: stage/tool -> compile:build/tool
+Rule index: 0 binding: hash digests equal: True
+ALLOW binding: wildcard source_hashes: None
+Uncovered: rejected; no partial success returned
+Digest mismatch: rejected; no partial success returned
+Inspection command never spawned; live verification completed.

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "live-coverage",
+    "argv": [
+      "D:\\hc\\userFeedback\\cache\\security-new20-20261116-r1\\runtime-tasks\\in-toto\\env\\Scripts\\python.exe",
+      "-B",
+      "demo.py"
+    ],
+    "exit_code": 0,
+    "finished_at_seconds": 14.27,
+    "typed_command": "python -B demo.py",
+    "input_mode": "automated GUI command editor, not manual typing"
+  }
+]

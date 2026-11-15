@@ -1,0 +1,16 @@
+完成。所有失败均为基线即存在的环境问题（此环境无可用 gpg、Windows 符号链接权限、pytest 对 `CliTestCase` 基类的收集问题），与基线失败集合完全一致，无回归。
+
+## 实现概览
+
+**新增 `in_toto/coverage.py`** — 不可变证明数据结构（均为 frozen dataclass，集合用 tuple）：
+- `ArtifactConsumption`：逐制品证明——`scope`（嵌套 layout 的委托路径）、`item_name`/`item_kind`（step 或 inspection）、`source_type`（materials/products）、`rule_index`（与 layout 中规则顺序一致）、`rule`（原始规则原文）、`source_prefix`/`dest_prefix` 变换、`dest_item`/`dest_artifact`（匹配了哪个被验证 link 的哪个制品）、`source_hashes`/`dest_hashes`（比较的 digest），以及 CREATE/DELETE/MODIFY 对两侧集合的影响（`in_materials`/`in_products`/`material_hashes`/`product_hashes` 分别记录）。
+- `binding` 字段区分授权依据：`hash`（MATCH）、`hash-difference`（MODIFY）、`set-membership`（CREATE/DELETE）、`wildcard`（ALLOW——`source_hashes=None`，照实标为通配，不写成 hash 绑定）。
+- `RuleTraceEntry`（每条规则的消费与剩余队列）、`UnconsumedArtifact`、`VerifiedLinkInfo`（门槛筛选后实际采用的 link 及其验证通过的 keyid）、`CoverageReport`（含 `summary_link`、`ok`、`records_for()`、`to_dict()` 供流水线 JSON 消费）。
+
+**`in_toto/verifylib.py`**：
+- 新增 `in_toto_verify_coverage(..., inspection_runner=None, strict=True)`，与 `in_toto_verify` 共享同一内部流程 `_verify_supply_chain`（`in_toto_verify` 签名与返回 Link 的方式不变，仅新增可选 kwarg）。
+- 覆盖版规则执行**复用**现有 `verify_match_rule` 等函数计算消费集合，语义完全一致：digest 不同名不记 MATCH、匹配失败不从待处理队列删除；严格模式下每个输入制品必须有消费依据，否则抛新增的 `CoverageError`（有限诊断：item、source_type、未消费路径），**不会**自动附加 `ALLOW *`，失败时不返回任何部分结果。
+- 证据只取自 `reduce_chain_links` 之后（签名门槛 + sublayout 验证完成）的 link；sublayout 递归通过 `verify_sublayouts(..., verify_fn=)` 传播 collector 与 runner，scope 逐层记录。
+- `run_all_inspections(..., inspection_runner=None)`：可注入本地运行器替代 `runlib.in_toto_run`，默认行为不变。
+
+**`tests/test_strict_coverage.py`** — 全离线示例（8 个测试全过）：用仓库自带测试密钥现场签名 layout/link，两个构建 step（`build`、`package`）+ 一个 inspection（`final-check`），覆盖：逐制品来源断言、`dist/`↔`build-out/` rename 前后 prefix、多 hash 中 sha512 一项不符导致 MATCH 不成立且留在待处理集、未消费制品（严格失败/非严格报告）、门槛筛选只采用可信 link（`evil.o` 不进证据）及 threshold=2 制品不一致抛 `ThresholdVerificationError`、嵌套 layout（scope 溯源到 `sub-chain`）、重复规则保留各自 `rule_index`。inspection 命令是一个"绝不存在"的命令，由注入的 `FakeInspectionRunner` 应答；`DISALLOW` 拒绝的 layout 在 step 规则阶段即失败，测试断言 `runner.calls == []`——被拒绝的 layout 从未进入运行器。

@@ -1,0 +1,28 @@
+{
+  "time": "2026-11-16T05:15:16+08:00",
+  "uid": 11580,
+  "status": "PASS",
+  "single_native_trace": "D:\\hc\\userFeedback\\cache\\runs\\uf-20261116-new20-artifact-rule-coverage-proof\\frozen\\trajectory-original.jsonl",
+  "trace_sha256": "0251e1ac0b0e69550904dedb18b81395a994b9ee1513afb4f8fcdff28fd32e51",
+  "session_id": "a81740ab-55be-47f9-884b-b73b554ad377",
+  "prompt_id": "93ff759e-b422-484b-9fde-1f9992851268",
+  "exact_single_prompt": true,
+  "native_models": [
+    "auto_model/urm"
+  ],
+  "native_efforts": [
+    "high"
+  ],
+  "three_explicit_high_settings": true,
+  "native_success": true,
+  "frozen_files_unchanged": true,
+  "private_reasoning_excluded": true,
+  "event_counts": {
+    "queue-operation": 6,
+    "user": 47,
+    "attachment": 50,
+    "atis-latch": 19,
+    "assistant": 97,
+    "last-prompt": 18
+  }
+}
