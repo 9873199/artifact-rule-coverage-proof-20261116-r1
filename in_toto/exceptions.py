@@ -27,6 +27,12 @@ class BadReturnValueError(Error):
     value."""
 
 
+class CoverageError(Error):
+    """Indicates that strict artifact coverage verification failed, i.e. an
+    artifact reported by a verified link was not consumed by any artifact
+    rule and thus has no explicit authorization in the layout."""
+
+
 class LinkNotFoundError(Error):
     """Indicates that a link file was not found."""
 

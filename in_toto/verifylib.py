@@ -42,8 +42,21 @@ import in_toto.models.link
 import in_toto.rulelib
 import in_toto.runlib
 import in_toto.settings
+from in_toto.coverage import (
+    BINDING_HASH,
+    BINDING_HASH_DIFFERENCE,
+    BINDING_SET_MEMBERSHIP,
+    BINDING_WILDCARD,
+    ArtifactConsumption,
+    CoverageCollector,
+    RuleTraceEntry,
+    UnconsumedArtifact,
+    VerifiedLinkInfo,
+    freeze_hashes,
+)
 from in_toto.exceptions import (
     BadReturnValueError,
+    CoverageError,
     LayoutExpiredError,
     RuleVerificationError,
     SignatureVerificationError,
@@ -179,6 +192,7 @@ def run_all_inspections(
     layout,
     persist_inspection_links,
     timeout=in_toto.settings.LINK_CMD_EXEC_TIMEOUT,
+    inspection_runner=None,
 ):
     """
     <Purpose>
@@ -200,6 +214,14 @@ def run_all_inspections(
               Integer that is the amount of seconds that the inspection run will
               fail after.
 
+      inspection_runner: (optional)
+              A callable that is invoked instead of `runlib.in_toto_run` to
+              produce the link metadata for an inspection. It is called as
+              `inspection_runner(name, material_list, product_list, link_cmd,
+              timeout=timeout)` and must return a Metadata object whose
+              payload is a Link. This allows callers (e.g. tests) to verify
+              layouts without executing untrusted inspection commands.
+
     <Exceptions>
       Calls function that raises BadReturnValueError if an inspection returned
       non-int or non-zero.
@@ -215,6 +237,9 @@ def run_all_inspections(
       }
 
     """
+    if inspection_runner is None:
+        inspection_runner = in_toto.runlib.in_toto_run
+
     inspection_links_dict = {}
     for inspection in layout.inspect:
         LOG.info("Executing command for inspection '%s'...", inspection.name)
@@ -229,7 +254,7 @@ def run_all_inspections(
         # If so, we should probably make it a default in run_link
         # We could use artifact rule paths.
         material_list = product_list = ["."]
-        link = in_toto.runlib.in_toto_run(
+        link = inspection_runner(
             inspection.name,
             material_list,
             product_list,
@@ -1187,6 +1212,439 @@ def verify_all_item_rules(items, links):
         verify_item_rules(item.name, "products", item.expected_products, links)
 
 
+def _build_consumption_record(
+    scope,
+    item_name,
+    item_kind,
+    source_type,
+    path,
+    rule_index,
+    rule,
+    rule_data,
+    source_artifacts,
+    materials_dict,
+    products_dict,
+    links,
+):
+    """
+    <Purpose>
+      Internal function that builds an immutable ArtifactConsumption proof
+      for a single artifact that was consumed by an artifact rule.
+
+      Only called for artifacts that were actually consumed by the regular
+      rule verification functions, i.e. artifacts that exist in the verified
+      link and satisfy the rule (e.g. hash equality for MATCH rules).
+
+    <Arguments>
+      scope:
+              Tuple of delegating step names identifying the (sub)layout
+              being verified. Empty for the top-level layout.
+
+      item_name:
+              The name of the step or inspection being verified.
+
+      item_kind:
+              One of "step" or "inspection".
+
+      source_type:
+              One of "materials" or "products".
+
+      path:
+              The full path of the consumed artifact.
+
+      rule_index:
+              The index of the rule in the item's rule list.
+
+      rule:
+              The original rule, as written in the layout.
+
+      rule_data:
+              The unpacked rule (see in_toto.rulelib).
+
+      source_artifacts:
+              All artifacts (including hashes) of the item's materials or
+              products (see source_type).
+
+      materials_dict:
+              All materials of the item (including hashes).
+
+      products_dict:
+              All products of the item (including hashes).
+
+      links:
+              A dictionary containing link metadata per step or inspection.
+
+    <Returns>
+      An ArtifactConsumption object.
+
+    """
+    rule_type = rule_data["rule_type"]
+
+    # Facts about the consumed artifact's presence in the item's materials
+    # and products, recorded separately for both sets
+    common = {
+        "scope": tuple(scope),
+        "item_name": item_name,
+        "item_kind": item_kind,
+        "source_type": source_type,
+        "artifact": path,
+        "rule_index": rule_index,
+        "rule": tuple(rule),
+        "rule_type": rule_type,
+        "in_materials": path in materials_dict,
+        "in_products": path in products_dict,
+        "material_hashes": freeze_hashes(materials_dict.get(path)),
+        "product_hashes": freeze_hashes(products_dict.get(path)),
+    }
+
+    if rule_type == "match":
+        # Recompute the prefix transformation for this artifact to record
+        # which destination artifact of which verified link was matched
+        source_prefix = rule_data["source_prefix"] or ""
+        dest_prefix = rule_data["dest_prefix"] or ""
+
+        if source_prefix:
+            normalized_source_prefix = os.path.join(
+                source_prefix, ""
+            ).replace("\\", "/")
+            relative_path = path[len(normalized_source_prefix) :]
+
+        else:
+            relative_path = path
+
+        if dest_prefix:
+            dest_path = os.path.join(dest_prefix, relative_path).replace(
+                "\\", "/"
+            )
+
+        else:
+            dest_path = relative_path
+
+        # The artifact was consumed, hence the destination link and the
+        # destination artifact with equal hashes are known to exist
+        dest_link = links[rule_data["dest_name"]]
+        dest_artifact = getattr(dest_link, rule_data["dest_type"])[dest_path]
+
+        return ArtifactConsumption(
+            binding=BINDING_HASH,
+            source_prefix=source_prefix,
+            dest_prefix=dest_prefix,
+            dest_item=rule_data["dest_name"],
+            dest_type=rule_data["dest_type"],
+            dest_artifact=dest_path,
+            source_hashes=freeze_hashes(source_artifacts[path]),
+            dest_hashes=freeze_hashes(dest_artifact),
+            **common,
+        )
+
+    if rule_type == "modify":
+        # Consumed because the artifact's material and product hashes differ
+        return ArtifactConsumption(
+            binding=BINDING_HASH_DIFFERENCE,
+            source_hashes=freeze_hashes(source_artifacts[path]),
+            **common,
+        )
+
+    if rule_type in ("create", "delete"):
+        # Consumed based on presence in/absence from materials and products
+        return ArtifactConsumption(
+            binding=BINDING_SET_MEMBERSHIP,
+            source_hashes=freeze_hashes(source_artifacts[path]),
+            **common,
+        )
+
+    # "allow": wildcard consumption, truthfully recorded as not hash-bound
+    return ArtifactConsumption(
+        binding=BINDING_WILDCARD,
+        **common,
+    )
+
+
+def verify_item_rules_coverage(  # noqa: C901, PLR0912
+    source_name, source_type, rules, links, collector, item_kind, scope=()
+):
+    """
+    <Purpose>
+      Coverage-collecting variant of `verify_item_rules`. Applies the passed
+      rules exactly like `verify_item_rules` does -- reusing the same rule
+      verification functions, so consumption semantics are identical -- and
+      additionally records an immutable ArtifactConsumption proof in the
+      passed collector for every consumed artifact.
+
+      Artifacts are only consumed (and recorded) if they exist in the
+      verified link and satisfy the rule. In particular, a MATCH rule does
+      not consume (and no MATCH proof is recorded for) an artifact whose
+      hashes differ from the destination artifact's hashes, and failed
+      matches are not removed from the artifact queue.
+
+      If the collector is strict, every artifact of the item's materials or
+      products (see source_type) must be consumed by some rule, i.e. have an
+      explicit consumption proof, otherwise CoverageError is raised. Rules
+      are never auto-appended (e.g. no implicit "ALLOW *") to make coverage
+      pass. In non-strict mode, leftover artifacts are recorded as
+      UnconsumedArtifact in the collector instead.
+
+    <Arguments>
+      source_name:
+              The name of the item (step or inspection) being verified.
+
+      source_type:
+              One of "materials" or "products".
+
+      rules:
+              The list of rules (material or product rules) for the item
+              being verified, in layout order.
+
+      links:
+              A dictionary containing link metadata per step or inspection,
+              e.g.:
+              {
+                <link name> : <Link object>,
+                ...
+              }
+
+      collector:
+              A CoverageCollector that proofs and trace entries are added
+              to.
+
+      item_kind:
+              One of "step" or "inspection".
+
+      scope: (optional)
+              Tuple of delegating step names identifying the (sub)layout
+              being verified. Empty for the top-level layout.
+
+    <Exceptions>
+      FormatError
+          if source_type is not "materials" or "products", or
+          if a rule in the passed list of rules does not conform with any
+          rule format.
+
+      RuleVerificationError
+          if a DISALLOW rule matches disallowed artifacts, or
+          if a REQUIRE rule does not find a required artifact.
+
+      CoverageError
+          if the collector is strict and artifacts remain unconsumed after
+          all rules were applied.
+
+    <Side Effects>
+      Clears and populates the global RULE_TRACE data structure.
+      Populates the passed collector.
+
+    """
+    if source_type not in {"materials", "products"}:
+        raise securesystemslib.exceptions.FormatError(
+            "Argument 'source_type' of function 'verify_item_rules_coverage'"
+            f" has to be one of 'materials' or 'products'. Got: '{source_type}'"
+        )
+
+    # Create shortcuts to item's materials and products (including hashes),
+    # required to verify "modify" and "match" rules.
+    materials_dict = links[source_name].materials
+    products_dict = links[source_name].products
+
+    # All other rules only require materials or products paths (without hashes)
+    materials_paths = set(materials_dict.keys())
+    products_paths = set(products_dict.keys())
+
+    # Depending on the source type we create the artifact queue from the
+    # item's materials or products and use it to keep track of (not)
+    # consumed artifacts. The queue also only contains artifact keys
+    # (without hashes)
+    artifacts = getattr(links[source_name], source_type)
+    artifacts_queue = set(artifacts.keys())
+
+    # Reset and re-populate rule traceback info dict, used for rich error
+    # messages of "disallow" and "require" rules
+    RULE_TRACE.clear()
+    RULE_TRACE["source_name"] = source_name
+    RULE_TRACE["source_type"] = source_type
+    RULE_TRACE["materials"] = list(materials_dict)
+    RULE_TRACE["products"] = list(products_dict)
+    RULE_TRACE["trace"] = []
+
+    # Process rules in layout order and remove consumed items from queue in
+    # each iteration
+    for rule_index, rule in enumerate(rules):
+        LOG.info("Verifying '%s'...", " ".join(rule))
+
+        # Parse the rule and create two shortcuts to contained rule data
+        rule_data = in_toto.rulelib.unpack_rule(rule)
+        _type = rule_data["rule_type"]
+        pattern = rule_data["pattern"]
+
+        # Initialize empty consumed set as fallback for rules that do not
+        # consume artifacts. All rules except "disallow" and "require"
+        # consume artifacts.
+        consumed = set()
+
+        if _type == "match":
+            consumed = verify_match_rule(
+                rule_data, artifacts_queue, artifacts, links
+            )
+
+        elif _type == "create":
+            consumed = verify_create_rule(
+                pattern, artifacts_queue, materials_paths, products_paths
+            )
+
+        elif _type == "delete":
+            consumed = verify_delete_rule(
+                pattern, artifacts_queue, materials_paths, products_paths
+            )
+
+        elif _type == "modify":
+            consumed = verify_modify_rule(
+                pattern, artifacts_queue, materials_dict, products_dict
+            )
+
+        elif _type == "allow":
+            consumed = verify_allow_rule(pattern, artifacts_queue)
+
+        # It's up to the "disallow" and "require" rule to raise an error if
+        # artifacts were not consumed as intended
+        elif _type == "disallow":
+            verify_disallow_rule(pattern, artifacts_queue)
+
+        elif _type == "require":
+            verify_require_rule(pattern, artifacts_queue)
+
+        else:  # pragma: no cover (unreachable)
+            raise securesystemslib.exceptions.FormatError(
+                f"Invaldid rule type '{_type}'."
+            )
+
+        # Only actually consumed artifacts leave the queue; failed matches
+        # stay pending
+        artifacts_queue -= consumed
+
+        # Append rule and copy of queue to global info for a rich error
+        # message
+        RULE_TRACE["trace"].append(
+            {"rule": rule, "queue": list(artifacts_queue)}
+        )
+
+        # Record an immutable per-artifact proof for each consumed artifact
+        for path in sorted(consumed):
+            collector.records.append(
+                _build_consumption_record(
+                    scope,
+                    source_name,
+                    item_kind,
+                    source_type,
+                    path,
+                    rule_index,
+                    rule,
+                    rule_data,
+                    artifacts,
+                    materials_dict,
+                    products_dict,
+                    links,
+                )
+            )
+
+        # Record the rule application itself, to preserve the layout's rule
+        # order and each rule's effect on the queue
+        collector.rule_trace.append(
+            RuleTraceEntry(
+                scope=tuple(scope),
+                item_name=source_name,
+                item_kind=item_kind,
+                source_type=source_type,
+                rule_index=rule_index,
+                rule=tuple(rule),
+                consumed=tuple(sorted(consumed)),
+                queue_after=tuple(sorted(artifacts_queue)),
+            )
+        )
+
+    if artifacts_queue:
+        if collector.strict:
+            # Limited diagnostics only; no partial result is returned
+            raise CoverageError(
+                "Strict artifact coverage failed:"
+                f" {len(artifacts_queue)} artifact(s) in '{source_type}' of"
+                f" item '{source_name}' have no consumption proof:"
+                f" {sorted(artifacts_queue)}"
+            )
+
+        for path in sorted(artifacts_queue):
+            collector.unconsumed.append(
+                UnconsumedArtifact(
+                    scope=tuple(scope),
+                    item_name=source_name,
+                    item_kind=item_kind,
+                    source_type=source_type,
+                    artifact=path,
+                )
+            )
+
+
+def verify_all_item_rules_coverage(
+    items, links, collector, item_kind, scope=()
+):
+    """
+    <Purpose>
+      Iteratively verifies artifact rules of passed items (Steps or
+      Inspections), recording per-artifact consumption proofs in the passed
+      collector (see `verify_item_rules_coverage`).
+
+    <Arguments>
+      items:
+              A list containing Step or Inspection objects whose material
+              and product rules will be verified.
+
+      links:
+              A dictionary containing link metadata per step or inspection,
+              e.g.:
+              {
+                <link name> : <Link object>,
+                ...
+              }
+
+      collector:
+              A CoverageCollector that proofs and trace entries are added
+              to.
+
+      item_kind:
+              One of "step" or "inspection".
+
+      scope: (optional)
+              Tuple of delegating step names identifying the (sub)layout
+              being verified. Empty for the top-level layout.
+
+    <Exceptions>
+      None.
+
+    <Side Effects>
+      Populates the passed collector.
+
+    """
+    for item in items:
+        LOG.info("Verifying material rules for '%s'...", item.name)
+        verify_item_rules_coverage(
+            item.name,
+            "materials",
+            item.expected_materials,
+            links,
+            collector,
+            item_kind,
+            scope,
+        )
+
+        LOG.info("Verifying product rules for '%s'...", item.name)
+        verify_item_rules_coverage(
+            item.name,
+            "products",
+            item.expected_products,
+            links,
+            collector,
+            item_kind,
+            scope,
+        )
+
+
 def verify_threshold_constraints(layout, chain_link_dict):
     """
     <Purpose>
@@ -1324,7 +1782,11 @@ def reduce_chain_links(chain_link_dict):
 
 
 def verify_sublayouts(
-    layout, steps_metadata, superlayout_link_dir_path, inspect_timeout
+    layout,
+    steps_metadata,
+    superlayout_link_dir_path,
+    inspect_timeout,
+    verify_fn=None,
 ):
     """
     <Purpose>
@@ -1358,6 +1820,15 @@ def verify_sublayouts(
               Integer value that is the number of seconds to pass to the run
               command to timeout the subprocess within.
 
+      verify_fn: (optional)
+              A callable used to recursively verify a sublayout, invoked as
+              `verify_fn(metadata, layout_key_dict, link_dir_path=<path>,
+              step_name=<name>, inspect_timeout=<timeout>)` and expected to
+              return a summary Link. Defaults to `in_toto_verify`. Callers
+              that perform strict coverage verification pass a function that
+              propagates their coverage collector and inspection runner into
+              the recursion.
+
     <Exceptions>
       raises an Exception if verification of the delegated step fails.
 
@@ -1376,6 +1847,9 @@ def verify_sublayouts(
       }
 
     """
+    if verify_fn is None:
+        verify_fn = in_toto_verify
+
     chain_link_dict = {}
 
     for step_name, metadata_dict in steps_metadata.items():
@@ -1405,9 +1879,9 @@ def verify_sublayouts(
                     superlayout_link_dir_path, sub_link_dir
                 )
 
-                # Make a recursive call to in_toto_verify with the
-                # layout and the extracted key object
-                summary_link = in_toto_verify(
+                # Make a recursive call to the configured verification
+                # function with the layout and the extracted key object
+                summary_link = verify_fn(
                     metadata,
                     layout_key_dict,
                     link_dir_path=sublayout_link_dir_path,
@@ -1489,6 +1963,7 @@ def in_toto_verify(  # noqa: PLR0913, PLR0917, RUF100
     step_name="",
     persist_inspection_links=True,
     inspect_timeout=in_toto.settings.LINK_CMD_EXEC_TIMEOUT,
+    inspection_runner=None,
 ):
     """Performs complete in-toto supply chain verification for a final product.
 
@@ -1547,6 +2022,11 @@ def in_toto_verify(  # noqa: PLR0913, PLR0917, RUF100
           in_toto.settings.LINK_CMD_EXEC_TIMEOUT in seconds which ends up timing
           out the run command subprocess if it runs over.
 
+      inspection_runner (optional): A callable that is invoked instead of
+          ``runlib.in_toto_run`` to produce link metadata for inspections
+          (see ``run_all_inspections``). This allows callers to verify layouts
+          without executing untrusted inspection commands.
+
     Raises:
       securesystemslib.exceptions.FormatError: Passed parameters are malformed.
 
@@ -1579,6 +2059,117 @@ def in_toto_verify(  # noqa: PLR0913, PLR0917, RUF100
       verification.
 
     """
+    return _verify_supply_chain(
+        metadata,
+        layout_key_dict,
+        link_dir_path=link_dir_path,
+        substitution_parameters=substitution_parameters,
+        step_name=step_name,
+        persist_inspection_links=persist_inspection_links,
+        inspect_timeout=inspect_timeout,
+        inspection_runner=inspection_runner,
+        collector=None,
+        scope=(),
+    )
+
+
+def in_toto_verify_coverage(  # noqa: PLR0913, PLR0917, RUF100
+    metadata,
+    layout_key_dict,
+    link_dir_path=".",
+    substitution_parameters=None,
+    step_name="",
+    persist_inspection_links=True,
+    inspect_timeout=in_toto.settings.LINK_CMD_EXEC_TIMEOUT,
+    inspection_runner=None,
+    strict=True,
+):
+    """Performs complete in-toto supply chain verification, like
+    ``in_toto_verify``, and additionally returns an immutable strict
+    coverage result (see ``in_toto.coverage.CoverageReport``) with a
+    per-artifact proof for every consumed material and product.
+
+    The verification workflow, the order of its activities and the rule
+    consumption semantics are identical to ``in_toto_verify``. Coverage
+    evidence is only built from links that passed signature threshold
+    verification and, for delegated steps, successful sublayout
+    verification -- never from rejected candidates.
+
+    In strict mode (the default) every artifact reported by an adopted
+    link must be consumed by an explicit artifact rule of the layout,
+    otherwise ``CoverageError`` is raised and no result is returned. Rules
+    are never auto-appended (e.g. no implicit ``ALLOW *``) to make
+    coverage pass. In non-strict mode, artifacts without a consumption
+    proof are listed in the returned report's ``unconsumed`` field
+    instead.
+
+    Arguments:
+      See ``in_toto_verify``. Additional arguments:
+
+      strict (optional): A boolean that determines whether artifacts
+          without a consumption proof fail the verification
+          (``CoverageError``) or are only reported in the returned
+          ``CoverageReport``.
+
+    Raises:
+      See ``in_toto_verify``. Additionally:
+
+      CoverageError: Strict mode is enabled and an artifact reported by a
+          verified link was not consumed by any artifact rule.
+
+    Side Effects:
+      Reads link metadata files from disk.
+      Runs inspection commands in subprocess.
+
+    Returns:
+      An immutable ``in_toto.coverage.CoverageReport`` with per-artifact
+      consumption proofs and the summary link of the verified supply
+      chain.
+
+    """
+    collector = CoverageCollector(strict=strict)
+    summary_link = _verify_supply_chain(
+        metadata,
+        layout_key_dict,
+        link_dir_path=link_dir_path,
+        substitution_parameters=substitution_parameters,
+        step_name=step_name,
+        persist_inspection_links=persist_inspection_links,
+        inspect_timeout=inspect_timeout,
+        inspection_runner=inspection_runner,
+        collector=collector,
+        scope=(),
+    )
+
+    # Verification passed; only now expose the (immutable) result, so that
+    # a failed verification can never be mistaken for a passed one
+    return collector.build_report(summary_link)
+
+
+def _verify_supply_chain(  # noqa: PLR0913, PLR0917, RUF100
+    metadata,
+    layout_key_dict,
+    link_dir_path,
+    substitution_parameters,
+    step_name,
+    persist_inspection_links,
+    inspect_timeout,
+    inspection_runner,
+    collector,
+    scope,
+):
+    """Internal implementation of the in-toto verification workflow shared
+    by ``in_toto_verify`` and ``in_toto_verify_coverage``.
+
+    If a CoverageCollector is passed, per-artifact consumption proofs are
+    recorded while verifying artifact rules, and the collector as well as
+    the inspection runner are propagated into recursive sublayout
+    verification. ``scope`` is a tuple of delegating step names that
+    identifies the (sub)layout being verified; it is empty for the
+    top-level layout.
+
+    """
+    # pylint: disable=too-many-locals
 
     LOG.info("Verifying layout metadata signatures...")
     verify_metadata_signatures(metadata, layout_key_dict)
@@ -1604,9 +2195,42 @@ def in_toto_verify(  # noqa: PLR0913, PLR0917, RUF100
     steps_metadata = verify_link_signature_thresholds(layout, steps_metadata)
 
     LOG.info("Verifying sublayouts...")
-    chain_link_dict = verify_sublayouts(
-        layout, steps_metadata, link_dir_path, inspect_timeout
-    )
+    if collector is None and inspection_runner is None:
+        chain_link_dict = verify_sublayouts(
+            layout, steps_metadata, link_dir_path, inspect_timeout
+        )
+
+    else:
+        # Propagate the coverage collector and the inspection runner into
+        # recursive sublayout verification, extending the scope with the
+        # name of the delegating step
+        def _verify_sublayout(
+            sub_metadata,
+            sub_layout_key_dict,
+            link_dir_path,
+            step_name,
+            inspect_timeout,
+        ):
+            return _verify_supply_chain(
+                sub_metadata,
+                sub_layout_key_dict,
+                link_dir_path=link_dir_path,
+                substitution_parameters=None,
+                step_name=step_name,
+                persist_inspection_links=persist_inspection_links,
+                inspect_timeout=inspect_timeout,
+                inspection_runner=inspection_runner,
+                collector=collector,
+                scope=scope + (step_name,),
+            )
+
+        chain_link_dict = verify_sublayouts(
+            layout,
+            steps_metadata,
+            link_dir_path,
+            inspect_timeout,
+            verify_fn=_verify_sublayout,
+        )
 
     LOG.info("Verifying alignment of reported commands...")
     verify_all_steps_command_alignment(layout, chain_link_dict)
@@ -1615,23 +2239,59 @@ def in_toto_verify(  # noqa: PLR0913, PLR0917, RUF100
     verify_threshold_constraints(layout, chain_link_dict)
     reduced_chain_link_dict = reduce_chain_links(chain_link_dict)
 
+    if collector is not None:
+        # Record the links that were actually adopted for each step, i.e.
+        # only links whose signatures verified and whose sublayouts (if
+        # any) verified successfully
+        for step in layout.steps:
+            collector.verified_links.append(
+                VerifiedLinkInfo(
+                    scope=tuple(scope),
+                    item_name=step.name,
+                    item_kind="step",
+                    keyids=tuple(sorted(chain_link_dict[step.name].keys())),
+                )
+            )
+
     # NOTE: Processing step rules before executing inspections guarantees that
     # inspection commands don't run on compromised target files, however, this
     # also precludes step match rules from referencing inspection artifacts.
     LOG.info("Verifying Step rules...")
-    verify_all_item_rules(layout.steps, reduced_chain_link_dict)
+    if collector is None:
+        verify_all_item_rules(layout.steps, reduced_chain_link_dict)
+    else:
+        verify_all_item_rules_coverage(
+            layout.steps, reduced_chain_link_dict, collector, "step", scope
+        )
 
     LOG.info("Executing Inspection commands...")
     inspection_link_dict = run_all_inspections(
-        layout, persist_inspection_links, inspect_timeout
+        layout, persist_inspection_links, inspect_timeout, inspection_runner
     )
+
+    if collector is not None:
+        # Inspection links are generated locally during verification
+        for inspection_name in inspection_link_dict:
+            collector.verified_links.append(
+                VerifiedLinkInfo(
+                    scope=tuple(scope),
+                    item_name=inspection_name,
+                    item_kind="inspection",
+                    keyids=(),
+                )
+            )
 
     LOG.info("Verifying Inspection rules...")
     # Artifact rules for inspections can reference links that correspond to
     # Steps or Inspections, hence the concatenation of both collections of links
     combined_links = reduced_chain_link_dict.copy()
     combined_links.update(inspection_link_dict)
-    verify_all_item_rules(layout.inspect, combined_links)
+    if collector is None:
+        verify_all_item_rules(layout.inspect, combined_links)
+    else:
+        verify_all_item_rules_coverage(
+            layout.inspect, combined_links, collector, "inspection", scope
+        )
 
     # We made it this far without exception that means, verification passed
     LOG.info("The software product passed all verification.")
